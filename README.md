@@ -40,6 +40,7 @@ Lint the playbooks:
 
 ```bash
 ./ansible-lint.sh --offline --parseable example.yml || echo 'ERROR linting'
+./ansible-lint.sh --offline --parseable example-destroy.yml || echo 'ERROR linting'
 ```
 
 List the inventory:
@@ -52,6 +53,12 @@ Create and configure the `vm1` machine using the [`example.yml` playbook](exampl
 
 ```bash
 ./ansible-playbook.sh --limit=vm1 example.yml | tee ansible-example.log
+```
+
+Destroy the `example1` machine using the [`example-destroy.yml` playbook](example-destroy.yml): 
+
+```bash
+./ansible-playbook.sh --limit=vm1 example-destroy.yml | tee ansible-example-destroy.log
 ```
 
 # References

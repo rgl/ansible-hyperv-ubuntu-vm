@@ -11,3 +11,5 @@ jobs:
         run: ./ansible-lint.sh --version
       - name: Lint the example.yml playbook
         run: ./ansible-lint.sh --offline --parseable example.yml
+      - name: Lint the example-destroy.yml playbook
+        run: ./ansible-lint.sh --offline --parseable example-destroy.yml
