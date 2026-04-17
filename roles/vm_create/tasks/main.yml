@@ -1,0 +1,141 @@
+- name: Create Virtual Machine
+  vars:
+    vm_create_name: "{{ inventory_hostname }}"
+  block:
+    # create a cloud-init configuration that will be used by the NoCloud cloud-init datasource.
+    # see journalctl -u cloud-init
+    # see /run/cloud-init/*.log
+    # see https://cloudinit.readthedocs.io/en/latest/topics/examples.html
+    # see https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html#datasource-nocloud
+    # see https://docs.cloud-init.io/en/latest/reference/network-config-format-v2.html#network-config-v2
+    # see https://docs.cloud-init.io/en/latest/explanation/format/index.html#user-data-formats
+    - name: Set the Virtual Machine cloud-init facts
+      ansible.builtin.set_fact:
+        vm_create_cloud_init_network_config:
+          version: 2
+          ethernets:
+            eth0:
+              dhcp4: false
+              dhcp6: false
+              addresses:
+                - "{{ ansible_host }}/24"
+              gateway4: "{{ vm_gateway }}"
+              nameservers:
+                addresses:
+                  - "{{ vm_gateway }}"
+        vm_create_cloud_init_config:
+          users:
+            - name: vagrant
+              plain_text_passwd: vagrant
+              lock_passwd: false
+              shell: /bin/bash
+              groups:
+                - sudo
+          runcmd:
+            - sed -i '/vagrant insecure public key/d' /home/vagrant/.ssh/authorized_keys
+    - name: Create Virtual Machine
+      microsoft.hyperv.hv_vm:
+        name: "{{ vm_create_name }}"
+        generation: 2
+        memory_startup_bytes: 4GB
+        boot_device: VHD
+    - name: Configure Virtual Machine Boot
+      microsoft.hyperv.hv_vm_boot:
+        name: "{{ vm_create_name }}"
+        secure_boot: false
+    - name: Create Virtual Machine Boot Disk
+      register: vm_create_boot_disk
+      microsoft.hyperv.hv_vhd:
+        parent_path: "{{ vm_template }}"
+        path: "{{ vm_storage }}\\{{ vm_create_name }}-boot.vhdx"
+        vhd_type: Differencing
+    - name: Attach Virtual Machine Boot Disk
+      microsoft.hyperv.hv_hard_disk:
+        vm_name: "{{ vm_create_name }}"
+        path: "{{ vm_create_boot_disk.path }}"
+        controller_type: SCSI
+    - name: Create Virtual Machine Data Disk
+      register: vm_create_data_disk
+      microsoft.hyperv.hv_vhd:
+        path: "{{ vm_storage }}\\{{ vm_create_name }}-data.vhdx"
+        size_bytes: "10GB"
+        vhd_type: Dynamic
+    - name: Attach Virtual Machine Data Disk
+      microsoft.hyperv.hv_hard_disk:
+        vm_name: "{{ vm_create_name }}"
+        path: "{{ vm_create_data_disk.path }}"
+        controller_type: SCSI
+    - name: Create cidata ISO
+      register: vm_create_cidata_iso
+      win_cidata_iso:
+        path: "{{ vm_storage }}\\{{ vm_create_name }}-cidata.iso"
+        network_config: "{{ vm_create_cloud_init_network_config | ansible.builtin.to_yaml }}"
+        user_data: "{{ (\"#cloud-config\n\" + (vm_create_cloud_init_config | ansible.builtin.to_yaml)) }}"
+    - name: Mount Virtual Machine cidata ISO DVD Drive
+      microsoft.hyperv.hv_dvd_drive:
+        vm_name: "{{ vm_create_name }}"
+        path: "{{ vm_create_cidata_iso.path }}"
+        state: mounted
+    - name: Create Virtual Machine Network Adapter
+      microsoft.hyperv.hv_network_adapter:
+        vm_name: "{{ vm_create_name }}"
+        switch_name: "{{ vm_switch }}"
+    # TODO when available, replace this with the hv_integration_service module.
+    - name: Enable Virtual Machine Integration Services
+      ansible.windows.win_powershell:
+        parameters:
+          vm_name: "{{ vm_create_name }}"
+        script: |
+          param(
+            [string]$vm_name
+          )
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
+          $Ansible.Changed = $false
+          # NB because, for some reason, sometimes "Guest Service Interface" (aka "Guest Services") is not enabled.
+          $disabledIntegrationServices = Get-VMIntegrationService $vm_name | Where-Object { -not $_.Enabled }
+          if ($disabledIntegrationServices) {
+            $disabledIntegrationServices | Enable-VMIntegrationService
+            $Ansible.Changed = $true
+          }
+    - name: Start Virtual Machine
+      microsoft.hyperv.hv_vm_state:
+        name: "{{ vm_create_name }}"
+        state: running
+    # TODO replace with hv_vm_guest_wait when available
+    #      see https://github.com/ansible-collections/microsoft.hyperv/issues/22
+    - name: Wait Virtual Machine IP Address
+      ansible.windows.win_powershell:
+        parameters:
+          vm_name: "{{ vm_create_name }}"
+          vm_network_adapter_name: Network Adapter
+          vm_ip: "{{ ansible_host }}"
+        script: |
+          param(
+            [string]$vm_name,
+            [string]$vm_network_adapter_name,
+            [string]$vm_ip
+          )
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          $ProgressPreference = 'SilentlyContinue'
+          $Ansible.Changed = $false
+          while ($true) {
+            $adapter = Get-VMNetworkAdapter `
+              -VMName $vm_name `
+              -VMNetworkAdapterName $vm_network_adapter_name
+            $ipAddresses = $adapter.IPAddresses
+            if ($ipAddresses -eq $vm_ip) {
+              break
+            }
+            Start-Sleep -Seconds 5
+          }
+    - name: Wait Virtual Machine OpenSSH
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        delay: 5
+        timeout: 120
+        search_regex: OpenSSH
+      delegate_to: localhost
