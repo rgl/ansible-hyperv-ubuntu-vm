@@ -10,3 +10,12 @@
         - name: Create Virtual Machine
           ansible.builtin.import_role:
             name: vm_create
+
+- name: Configure Ubuntu
+  hosts:
+    - vms
+  gather_facts: true
+  become: true
+  roles:
+    - data_disk
+    - base
