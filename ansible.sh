@@ -36,6 +36,8 @@ exec docker run \
     -e VM_HYPERV_TEMPLATE \
     -e VM_HYPERV_STORAGE \
     -e VM_SWITCH \
+    -e VM_VLAN_MODE \
+    -e VM_VLAN_ID \
     -e VM_GATEWAY \
     -e VM_FIRST_IP \
     -e VM_ADMIN_PASSWORD \

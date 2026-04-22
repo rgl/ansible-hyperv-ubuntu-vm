@@ -80,6 +80,8 @@
       microsoft.hyperv.hv_network_adapter:
         vm_name: "{{ vm_create_name }}"
         switch_name: "{{ vm_switch }}"
+        vlan_mode: "{{ vm_vlan_mode }}"
+        vlan_id: "{{ vm_vlan_id }}"
     # TODO when available, replace this with the hv_integration_service module.
     - name: Enable Virtual Machine Integration Services
       ansible.windows.win_powershell:

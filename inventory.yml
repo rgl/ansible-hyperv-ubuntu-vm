@@ -28,6 +28,8 @@ all:
         ansible_sudo_pass: '{{ ansible_password }}'
   vars:
     vm_switch: '{{ lookup("env", "VM_SWITCH") }}'
+    vm_vlan_mode: '{{ lookup("env", "VM_VLAN_MODE") | default(None, true) }}'
+    vm_vlan_id: '{{ lookup("env", "VM_VLAN_ID") | default(None, true) }}'
     vm_gateway: '{{ lookup("env", "VM_GATEWAY") }}'
     vm_first_ip: '{{ lookup("env", "VM_FIRST_IP") }}'
     vm_ansible_project_path: '{{ lookup("env", "VM_ANSIBLE_PROJECT_PATH") }}'

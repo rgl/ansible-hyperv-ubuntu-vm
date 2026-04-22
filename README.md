@@ -30,6 +30,8 @@ export VM_HYPERV_PASSWORD='vagrant'
 export VM_HYPERV_TEMPLATE='C:/Users/Administrator/.vagrant.d/boxes/ubuntu-24.04-amd64/0.0.0/hyperv/Virtual Hard Disks/packer-ubuntu-amd64.vhdx'
 export VM_HYPERV_STORAGE='C:/ProgramData/Microsoft/Windows/Hyper-V/Virtual Machines'
 export VM_SWITCH='Bridge'
+#export VM_VLAN_MODE='Access'
+#export VM_VLAN_ID='1'
 export VM_GATEWAY='192.168.8.1'
 export VM_FIRST_IP='192.168.8.200'
 EOF
