@@ -37,8 +37,11 @@
       microsoft.hyperv.hv_vm:
         name: "{{ vm_create_name }}"
         generation: 2
-        memory_startup_bytes: 4GB
         boot_device: VHD
+    - name: Configure Virtual Machine Memory
+      microsoft.hyperv.hv_memory:
+        name: "{{ vm_create_name }}"
+        startup_bytes: 4GB
     - name: Configure Virtual Machine Boot
       microsoft.hyperv.hv_vm_boot:
         name: "{{ vm_create_name }}"
