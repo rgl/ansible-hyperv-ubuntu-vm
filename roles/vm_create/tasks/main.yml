@@ -38,6 +38,10 @@
         name: "{{ vm_create_name }}"
         generation: 2
         boot_device: VHD
+    - name: Configure Virtual Machine Processor
+      microsoft.hyperv.hv_processor:
+        name: "{{ vm_create_name }}"
+        count: 4
     - name: Configure Virtual Machine Memory
       microsoft.hyperv.hv_memory:
         name: "{{ vm_create_name }}"
