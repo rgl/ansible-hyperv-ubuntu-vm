@@ -57,6 +57,14 @@ See the facts about the `hv` machine (the Hyper-V Host):
 ./ansible.sh hv -m ansible.builtin.setup
 ```
 
+Run an ad-hoc command in the `hv` machine (the Hyper-V Host):
+
+```bash
+./ansible.sh hv -m win_command -a 'whoami /all'
+./ansible.sh hv -m win_command -a 'cmd /c winrm enumerate winrm/config/listener'
+./ansible.sh hv -m win_command -a 'cmd /c winrm get winrm/config'
+./ansible.sh hv -m win_shell -a 'Get-PSSessionConfiguration'
+```
 
 Create and configure the `vm1` machine (the Hyper-V Guest) using the [`example.yml` playbook](example.yml):
 
