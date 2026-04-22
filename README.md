@@ -51,13 +51,20 @@ List the inventory:
 ./ansible-inventory.sh --list --yaml
 ```
 
-Create and configure the `vm1` machine using the [`example.yml` playbook](example.yml): 
+See the facts about the `hv` machine (the Hyper-V Host):
+
+```bash
+./ansible.sh hv -m ansible.builtin.setup
+```
+
+
+Create and configure the `vm1` machine (the Hyper-V Guest) using the [`example.yml` playbook](example.yml):
 
 ```bash
 ./ansible-playbook.sh --limit=vm1 example.yml | tee ansible-example.log
 ```
 
-Destroy the `example1` machine using the [`example-destroy.yml` playbook](example-destroy.yml): 
+Destroy the `vm1` machine (the Hyper-V Guest) using the [`example-destroy.yml` playbook](example-destroy.yml):
 
 ```bash
 ./ansible-playbook.sh --limit=vm1 example-destroy.yml | tee ansible-example-destroy.log
