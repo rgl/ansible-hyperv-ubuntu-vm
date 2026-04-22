@@ -72,6 +72,25 @@ Create and configure the `vm1` machine (the Hyper-V Guest) using the [`example.y
 ./ansible-playbook.sh --limit=vm1 example.yml | tee ansible-example.log
 ```
 
+Access the `vm1` machine:
+
+```bash
+vm1_vars="$(ANSIBLE_CALLBACK_RESULT_FORMAT=json ANSIBLE_CALLBACK_FORMAT_PRETTY=false \
+    ./ansible.sh vm1 -m debug -a 'var=hostvars[inventory_hostname]' \
+    | grep -oP '(?<=SUCCESS => )\{.*\}')"
+vm1_user="$(jq -r '.["hostvars[inventory_hostname]"].ansible_user' <<<"$vm1_vars")"
+vm1_host="$(jq -r '.["hostvars[inventory_hostname]"].ansible_host' <<<"$vm1_vars")"
+ssh "$vm1_user@$vm1_host"
+id
+uname -a
+ip addr
+systemctl status
+systemctl status hv-kvp-daemon.service
+networkctl status
+timedatectl status
+exit
+```
+
 Destroy the `vm1` machine (the Hyper-V Guest) using the [`example-destroy.yml` playbook](example-destroy.yml):
 
 ```bash
