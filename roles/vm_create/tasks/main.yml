@@ -61,6 +61,7 @@
         vm_name: "{{ vm_create_name }}"
         path: "{{ vm_create_boot_disk.path }}"
         controller_type: SCSI
+        controller_location: 0
     - name: Create Virtual Machine Data Disk
       register: vm_create_data_disk
       microsoft.hyperv.hv_vhd:
@@ -72,6 +73,7 @@
         vm_name: "{{ vm_create_name }}"
         path: "{{ vm_create_data_disk.path }}"
         controller_type: SCSI
+        controller_location: 1
     - name: Create cidata ISO
       register: vm_create_cidata_iso
       win_cidata_iso:
@@ -82,6 +84,7 @@
       microsoft.hyperv.hv_dvd_drive:
         vm_name: "{{ vm_create_name }}"
         path: "{{ vm_create_cidata_iso.path }}"
+        controller_location: 63
         state: mounted
     - name: Create Virtual Machine Network Adapter
       microsoft.hyperv.hv_network_adapter:

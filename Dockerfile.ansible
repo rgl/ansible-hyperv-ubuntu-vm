@@ -58,15 +58,5 @@ ansible-galaxy role install \
     -p /usr/share/ansible/roles
 EOF
 
-# patch the hv_vhd module.
-# see https://github.com/ansible-collections/microsoft.hyperv/issues/19
-RUN <<EOF
-#!/bin/bash
-set -euxo pipefail
-sed -i \
-    -E 's,New-VHD @cmdParams -PassThru,New-VHD @cmdParams,g' \
-    /usr/share/ansible/collections/ansible_collections/microsoft/hyperv/plugins/modules/hv_vhd.ps1
-EOF
-
 # set the working directory.
 WORKDIR /project
