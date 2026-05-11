@@ -41,6 +41,13 @@
         notes: |
           example virtual machine
           created using the https://github.com/rgl/ansible-hyperv-ubuntu-vm ansible playbook
+    - name: Configure Virtual Machine Tags
+      microsoft.hyperv.hv_vm_tag:
+        name: "{{ vm_create_name }}"
+        state: exact
+        tags:
+          template: "{{ vm_template }}"
+          ansible_project_path: "{{ vm_ansible_project_path }}"
     - name: Configure Virtual Machine Processor
       microsoft.hyperv.hv_processor:
         name: "{{ vm_create_name }}"
