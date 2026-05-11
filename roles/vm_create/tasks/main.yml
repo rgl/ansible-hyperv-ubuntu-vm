@@ -38,6 +38,9 @@
         name: "{{ vm_create_name }}"
         generation: 2
         boot_device: VHD
+        notes: |
+          example virtual machine
+          created using the https://github.com/rgl/ansible-hyperv-ubuntu-vm ansible playbook
     - name: Configure Virtual Machine Processor
       microsoft.hyperv.hv_processor:
         name: "{{ vm_create_name }}"
