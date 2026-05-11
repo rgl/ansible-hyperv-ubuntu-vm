@@ -72,7 +72,7 @@ Create and configure the `vm1` machine (the Hyper-V Guest) using the [`example.y
 ./ansible-playbook.sh --limit=vm1 example.yml | tee ansible-example.log
 ```
 
-Access the `vm1` machine:
+Access the `vm1` machine (the Hyper-V Guest):
 
 ```bash
 vm1_vars="$(ANSIBLE_CALLBACK_RESULT_FORMAT=json ANSIBLE_CALLBACK_FORMAT_PRETTY=false \
@@ -88,7 +88,33 @@ systemctl status
 systemctl status hv-kvp-daemon.service
 networkctl status
 timedatectl status
+ps -efww --forest
 exit
+```
+
+Access the `vm1` machine (the Hyper-V Guest) from within the `hv` machine (the Hyper-V Host) using the host Hyper-V VMBus Socket (aka vsock):
+
+```bash
+hv_vars="$(ANSIBLE_CALLBACK_RESULT_FORMAT=json ANSIBLE_CALLBACK_FORMAT_PRETTY=false \
+    ./ansible.sh hv -m debug -a 'var=hostvars[inventory_hostname]' \
+    | grep -oP '(?<=SUCCESS => )\{.*\}')"
+hv_user="$(jq -r '.["hostvars[inventory_hostname]"].ansible_user' <<<"$hv_vars")"
+hv_host="$(jq -r '.["hostvars[inventory_hostname]"].ansible_host' <<<"$hv_vars")"
+ssh "$hv_user@$hv_host"
+pwsh
+hvc list
+# connect using hvc ssh.
+# NB hvc ssh uses a hyper-v vmbus socket which does not use the guest network.
+# NB this is equivalent of using ssh -o ProxyCommand='hvc nc %h %p' vagrant@vm1.
+# NB hvc cannot use an ssh path with spaces.
+$env:HV_SSH_COMMAND='C:\PROGRA~1\OpenSSH\ssh.exe'
+hvc ssh vagrant@vm1
+cat /etc/os-release
+ps -efww --forest
+sudo ss -a --vsock --processes
+exit # exit hvc ssh.
+exit # exit hv pwsh
+exit # exit hv ssh
 ```
 
 Destroy the `vm1` machine (the Hyper-V Guest) using the [`example-destroy.yml` playbook](example-destroy.yml):
