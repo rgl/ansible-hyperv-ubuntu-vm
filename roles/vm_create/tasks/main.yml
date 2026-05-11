@@ -115,34 +115,10 @@
       microsoft.hyperv.hv_vm_state:
         name: "{{ vm_create_name }}"
         state: running
-    # TODO replace with hv_vm_guest_wait when available
-    #      see https://github.com/ansible-collections/microsoft.hyperv/issues/22
     - name: Wait Virtual Machine IP Address
-      ansible.windows.win_powershell:
-        parameters:
-          vm_name: "{{ vm_create_name }}"
-          vm_network_adapter_name: Network Adapter
-          vm_ip: "{{ ansible_host }}"
-        script: |
-          param(
-            [string]$vm_name,
-            [string]$vm_network_adapter_name,
-            [string]$vm_ip
-          )
-          Set-StrictMode -Version Latest
-          $ErrorActionPreference = 'Stop'
-          $ProgressPreference = 'SilentlyContinue'
-          $Ansible.Changed = $false
-          while ($true) {
-            $adapter = Get-VMNetworkAdapter `
-              -VMName $vm_name `
-              -VMNetworkAdapterName $vm_network_adapter_name
-            $ipAddresses = $adapter.IPAddresses
-            if ($ipAddresses -eq $vm_ip) {
-              break
-            }
-            Start-Sleep -Seconds 5
-          }
+      microsoft.hyperv.hv_vm_guest_wait:
+        name: "{{ vm_create_name }}"
+        expected_ip: "{{ ansible_host }}"
     - name: Wait Virtual Machine OpenSSH
       ansible.builtin.wait_for:
         host: "{{ ansible_host }}"
