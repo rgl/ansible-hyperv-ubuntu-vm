@@ -81,6 +81,7 @@ vm1_vars="$(ANSIBLE_CALLBACK_RESULT_FORMAT=json ANSIBLE_CALLBACK_FORMAT_PRETTY=f
 vm1_user="$(jq -r '.["hostvars[inventory_hostname]"].ansible_user' <<<"$vm1_vars")"
 vm1_host="$(jq -r '.["hostvars[inventory_hostname]"].ansible_host' <<<"$vm1_vars")"
 ssh "$vm1_user@$vm1_host"
+sudo -i
 id
 uname -a
 ip addr
@@ -88,8 +89,11 @@ systemctl status
 systemctl status hv-kvp-daemon.service
 networkctl status
 timedatectl status
+cloud-init schema --system --annotate
+cloud-init status --long --wait
 ps -efww --forest
-exit
+exit # exit sudo -i
+exit # exit ssh
 ```
 
 Access the `vm1` machine (the Hyper-V Guest) from within the `hv` machine (the Hyper-V Host) using the host Hyper-V VMBus Socket (aka vsock):

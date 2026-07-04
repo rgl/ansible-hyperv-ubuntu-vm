@@ -5,10 +5,11 @@
     # create a cloud-init configuration that will be used by the NoCloud cloud-init datasource.
     # see journalctl -u cloud-init
     # see /run/cloud-init/*.log
-    # see https://cloudinit.readthedocs.io/en/latest/topics/examples.html
-    # see https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html#datasource-nocloud
-    # see https://docs.cloud-init.io/en/latest/reference/network-config-format-v2.html#network-config-v2
-    # see https://docs.cloud-init.io/en/latest/explanation/format/index.html#user-data-formats
+    # see https://docs.cloud-init.io/en/26.1/reference/examples.html
+    # see https://docs.cloud-init.io/en/26.1/reference/datasources/nocloud.html
+    # see https://docs.cloud-init.io/en/26.1/explanation/format/index.html
+    # see https://docs.cloud-init.io/en/26.1/reference/network-config.html
+    # see https://docs.cloud-init.io/en/26.1/reference/network-config-format-v2.html
     - name: Set the Virtual Machine cloud-init facts
       ansible.builtin.set_fact:
         vm_create_cloud_init_network_config:
@@ -19,7 +20,9 @@
               dhcp6: false
               addresses:
                 - "{{ ansible_host }}/24"
-              gateway4: "{{ vm_gateway }}"
+              routes:
+                - to: 0.0.0.0/0
+                  via: "{{ vm_gateway }}"
               nameservers:
                 addresses:
                   - "{{ vm_gateway }}"
